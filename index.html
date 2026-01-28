@@ -1,0 +1,2811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Any Image Converter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Background */
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-tertiary: #1e1e1e;
+            --bg-card: #1a1a1a;
+
+            /* Text */
+            --text-primary: #ffffff;
+            --text-secondary: #a3a3a3;
+            --text-muted: #737373;
+
+            /* Accent */
+            --accent: #4fa8ff;
+            --accent-hover: #5fb1ff;
+            --accent-light: rgba(79, 168, 255, 0.12);
+
+            /* UI */
+            --border: #2a2a2a;
+            --shadow: rgba(0, 0, 0, 0.5);
+
+            /* Status */
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #ffffff;
+                --bg-secondary: #fafafa;
+                --bg-tertiary: #f5f5f5;
+                --bg-card: #ffffff;
+                --text-primary: #0a0a0a;
+                --text-secondary: #525252;
+                --text-muted: #737373;
+                --border: #e5e5e5;
+                --shadow: rgba(0, 0, 0, 0.1);
+                --accent-light: rgba(79, 168, 255, 0.08);
+            }
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.2s, color 0.2s;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.5s ease;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--accent);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.75rem;
+            box-shadow: 0 8px 24px rgba(79, 168, 255, 0.3);
+        }
+
+        .logo-text {
+            font-size: 1.875rem;
+            font-weight: 900;
+            color: var(--accent);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .format-chip {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .format-chip:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .upload-section {
+            background: var(--bg-card);
+            border: 2px dashed var(--border);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeIn 0.5s ease 0.1s both;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--accent-light);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .upload-section:hover::before {
+            opacity: 1;
+        }
+
+        .upload-section.dragover {
+            border-color: var(--accent);
+            background: var(--bg-tertiary);
+            transform: scale(1.02);
+            box-shadow: 0 12px 40px var(--shadow);
+        }
+
+        .upload-section:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .upload-text {
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .upload-subtext {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        .file-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0 0.25rem;
+        }
+
+        .section-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-count {
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+            gap: 1rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .file-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            position: relative;
+            transition: all 0.3s;
+            animation: scaleIn 0.3s ease;
+            cursor: grab;
+        }
+
+        .file-card:active {
+            cursor: grabbing;
+        }
+
+        .file-card.sortable-ghost {
+            opacity: 0.4;
+        }
+
+        .file-card.sortable-drag {
+            opacity: 1;
+            transform: rotate(5deg);
+            box-shadow: 0 12px 40px var(--shadow);
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .file-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--shadow);
+        }
+
+        .drag-handle {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            cursor: grab;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 2;
+        }
+
+        .file-card:hover .drag-handle {
+            opacity: 1;
+        }
+
+        .file-preview {
+            width: 100%;
+            aspect-ratio: 1;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .file-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .file-preview:hover img {
+            transform: scale(1.05);
+        }
+
+        .file-preview i {
+            font-size: 2.5rem;
+            color: var(--accent);
+        }
+
+        .file-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-size {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--error);
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            z-index: 2;
+        }
+
+        .file-card:hover .remove-btn {
+            opacity: 1;
+        }
+
+        .remove-btn:hover {
+            transform: scale(1.1);
+            background: #dc2626;
+        }
+
+        .controls {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.5s ease 0.2s both;
+        }
+
+        .control-card {
+            background: var(--bg-card);
+            padding: 1.25rem;
+            border-radius: 18px;
+            border: 2px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .control-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .control-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.875rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .control-label i {
+            color: var(--accent);
+            font-size: 1.05rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        select:hover {
+            border-color: var(--accent);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .slider-container {
+            position: relative;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.875rem;
+        }
+
+        .quality-badge {
+            background: var(--accent);
+            color: white;
+            padding: 0.375rem 0.875rem;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(79, 168, 255, 0.3);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            outline: none;
+            -webkit-appearance: none;
+            border: 2px solid var(--border);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(79, 168, 255, 0.4);
+            transition: all 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 20px rgba(79, 168, 255, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 12px rgba(79, 168, 255, 0.4);
+            transition: all 0.3s;
+        }
+
+        .pdf-options {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--border);
+        }
+
+        .pdf-size-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.625rem;
+            margin-top: 0.75rem;
+        }
+
+        .pdf-size-option {
+            background: var(--bg-tertiary);
+            padding: 0.875rem;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .pdf-size-option:hover {
+            border-color: var(--accent);
+            background: var(--bg-card);
+            transform: translateY(-2px);
+        }
+
+        .pdf-size-option.active {
+            border-color: var(--accent);
+            background: var(--accent-light);
+            box-shadow: 0 4px 12px rgba(79, 168, 255, 0.2);
+        }
+
+        .pdf-size-name {
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .pdf-size-dims {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            padding: 1rem 1.25rem;
+            border: none;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 6px 20px rgba(79, 168, 255, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(79, 168, 255, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 1rem;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal Result */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            border: 2px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideInUp 0.4s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--success);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .modal-icon.warning {
+            background: var(--warning);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .modal-stats {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .stat-value {
+            font-weight: 700;
+        }
+
+        .modal-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .modal-input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        /* Preview Modal */
+        .preview-modal .modal-content {
+            max-width: 90%;
+            max-height: 90vh;
+            padding: 1.5rem;
+            width: auto;
+            min-width: 300px;
+        }
+
+        .preview-container {
+            width: 100%;
+            max-height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            position: relative;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 65vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 12px 40px var(--shadow);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 300px;
+            animation: slideInRight 0.4s ease;
+            transform: translateX(400px);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.hide {
+            animation: slideOutRight 0.4s ease forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+
+        .notification.success .notification-icon {
+            background: var(--success);
+            color: white;
+        }
+
+        .notification.error .notification-icon {
+            background: var(--error);
+            color: white;
+        }
+
+        .notification.warning .notification-icon {
+            background: var(--warning);
+            color: white;
+        }
+
+        .notification.info .notification-icon {
+            background: var(--accent);
+            color: white;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-message {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .feature-badge {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            z-index: 2;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem 1rem;
+            }
+
+            .file-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+
+            .format-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+
+            .notification {
+                right: 1rem;
+                left: 1rem;
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-images"></i>
+                </div>
+                <div class="logo-text">Any Image Converter</div>
+            </div>
+            <div class="subtitle">Convert, Compress & Combine Images</div>
+            
+            <!-- Format List -->
+
+        </header>
+
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-icon">
+                <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <div class="upload-text">Drag & Drop or Click to Upload</div>
+            <div class="upload-subtext">
+                Supported: JPG, PNG, WEBP, GIF, BMP, TIFF, SVG, HEIF, ICO, ICNS, AI<br>
+                Also: PDF, DOC, DOCX, PPT, PPTX<br>
+                <span id="multiFileHint">Select multiple files for batch processing</span>
+            </div>
+            <input type="file" id="fileInput" multiple accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.ai,.heif,.heic,.ico,.icns,.svg" style="display: none;">
+        </div>
+
+        <div id="fileSection" class="file-section hidden">
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Selected Files</span>
+                </div>
+                <div class="file-count" id="fileCount">0 files</div>
+            </div>
+            <div id="fileGrid" class="file-grid"></div>
+        </div>
+
+        <div class="controls">
+            <div class="control-card">
+                <div class="control-label">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Output Format</span>
+                </div>
+                <select id="formatSelect">
+                    <!-- Common Image Formats -->
+                    <option value="jpeg">JPEG</option>
+                    <option value="png">PNG</option>
+                    <option value="webp">WEBP</option>
+                    <option value="gif">GIF</option>
+                    <option value="bmp">BMP</option>
+                    <option value="tiff">TIFF</option>
+                    <option value="ico">ICO</option>
+                    <option value="icns">ICNS</option>
+                    <!-- Vector Formats -->
+                    <option value="svg">SVG</option>
+                    <!-- Document Formats -->
+                    <option value="pdf">PDF (Combine Images)</option>
+                    <!-- Microsoft Formats -->
+                    <option value="docx">DOCX (Word)</option>
+                    <option value="pptx">PPTX (PowerPoint)</option>
+                </select>
+                <div id="pdfOptions" class="pdf-options hidden">
+                    <div class="control-label" style="margin-bottom: 0.75rem;">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>PDF Size</span>
+                    </div>
+                    <div class="pdf-size-grid">
+                        <div class="pdf-size-option active" data-size="auto">
+                            <div class="pdf-size-name">Auto</div>
+                            <div class="pdf-size-dims">Match Image Size</div>
+                        </div>
+                        <div class="pdf-size-option" data-size="a4">
+                            <div class="pdf-size-name">A4</div>
+                            <div class="pdf-size-dims">210 × 297 mm</div>
+                        </div>
+                        <div class="pdf-size-option" data-size="letter">
+                            <div class="pdf-size-name">Letter</div>
+                            <div class="pdf-size-dims">216 × 279 mm</div>
+                        </div>
+                        <div class="pdf-size-option" data-size="legal">
+                            <div class="pdf-size-name">Legal</div>
+                            <div class="pdf-size-dims">216 × 356 mm</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-card">
+                <div class="slider-container">
+                    <div class="slider-header">
+                        <div class="control-label" style="margin: 0;">
+                            <i class="fas fa-sliders-h"></i>
+                            <span>Image Quality</span>
+                        </div>
+                        <div class="quality-badge" id="qualityValue">90%</div>
+                    </div>
+                    <input type="range" id="qualitySlider" min="1" max="100" value="90">
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <div style="color: var(--text-secondary); font-weight: 600;">Processing files...</div>
+        </div>
+
+        <div class="action-buttons hidden" id="actionButtons">
+            <button class="btn btn-primary" id="convertBtn">
+                <i class="fas fa-sync-alt"></i>
+                <span>Convert</span>
+            </button>
+            <button class="btn btn-secondary" id="resetBtn">
+                <i class="fas fa-redo"></i>
+                <span>Reset</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon" id="modalIcon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="modal-title" id="modalTitle">Conversion Successful!</div>
+            </div>
+            <div class="modal-body" id="modalBody">
+                Files have been successfully converted and are ready for download.
+            </div>
+            <div class="modal-stats" id="modalStats">
+                <div class="stat-row">
+                    <span class="stat-label">Total Files</span>
+                    <span class="stat-value" id="statTotalFiles">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Original Size</span>
+                    <span class="stat-value" id="statOriginalSize">0 KB</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Final Size</span>
+                    <span class="stat-value" id="statFinalSize">0 KB</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Compression</span>
+                    <span class="stat-value" id="statCompression" style="color: var(--success);">0%</span>
+                </div>
+            </div>
+            <div class="modal-input-group" id="fileNameInputGroup">
+                <label class="modal-input-label" id="fileNameLabel">Output File Name:</label>
+                <input type="text" class="modal-input" id="fileNameInput" value="converted">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                    <span>Close</span>
+                </button>
+                <button class="btn btn-primary" onclick="downloadFromModal()">
+                    <i class="fas fa-download"></i>
+                    <span>Download</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal preview-modal" id="previewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon" style="background: var(--accent);">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="modal-title" id="previewTitle">Image Preview</div>
+            </div>
+            <div class="preview-container" id="previewContainer">
+                <!-- Preview content will be inserted here -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closePreviewModal()">
+                    <i class="fas fa-times"></i>
+                    <span>Close</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Required Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- SVG to Canvas conversion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.9/canvg.min.js"></script>
+    <!-- HEIF/HEIC support -->
+    <script src="https://cdn.jsdelivr.net/npm/libheif-js@1.16.0/libheif.js"></script>
+    <!-- ICO/ICNS support -->
+    <script src="https://cdn.jsdelivr.net/npm/icojs@3.0.2/dist/ico.min.js"></script>
+    
+    <script>
+// ==================== KONFIGURASI AWAL ====================
+let uploadedFiles = [];
+let convertedBlobs = [];
+let selectedPdfSize = 'auto';
+let sortable = null;
+
+// DOM Elements
+const uploadSection = document.getElementById('uploadSection');
+const fileInput = document.getElementById('fileInput');
+const fileSection = document.getElementById('fileSection');
+const fileGrid = document.getElementById('fileGrid');
+const fileCount = document.getElementById('fileCount');
+const formatSelect = document.getElementById('formatSelect');
+const qualitySlider = document.getElementById('qualitySlider');
+const qualityValue = document.getElementById('qualityValue');
+const actionButtons = document.getElementById('actionButtons');
+const convertBtn = document.getElementById('convertBtn');
+const resetBtn = document.getElementById('resetBtn');
+const loading = document.getElementById('loading');
+const pdfOptions = document.getElementById('pdfOptions');
+const multiFileHint = document.getElementById('multiFileHint');
+const resultModal = document.getElementById('resultModal');
+const previewModal = document.getElementById('previewModal');
+const fileNameInput = document.getElementById('fileNameInput');
+
+// Supported file types
+const supportedImageTypes = [
+    'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
+    'image/bmp', 'image/tiff', 'image/svg+xml'
+];
+
+const supportedExtensions = [
+    '.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff', '.svg',
+    '.pdf', '.ico'
+];
+
+// Format mappings
+const formatMimeTypes = {
+    'jpeg': 'image/jpeg',
+    'jpg': 'image/jpeg',
+    'png': 'image/png',
+    'webp': 'image/webp',
+    'gif': 'image/gif',
+    'bmp': 'image/bmp',
+    'tiff': 'image/tiff',
+    'svg': 'image/svg+xml',
+    'ico': 'image/x-icon',
+    'pdf': 'application/pdf'
+};
+
+// ==================== FUNGSI VALIDASI FORMAT ====================
+
+function canConvertFormat(file, targetFormat) {
+    const fileName = file.name.toLowerCase();
+    const fileExt = fileName.substring(fileName.lastIndexOf('.'));
+    
+    // Cek jika format sama (tidak perlu konversi)
+    const sourceFormat = getFileFormat(file);
+    if (sourceFormat === targetFormat) {
+        return {
+            canConvert: false,
+            type: 'error',
+            message: `File is already in ${targetFormat.toUpperCase()} format. No conversion needed.`,
+            badge: 'SAME FORMAT'
+        };
+    }
+    
+    // ICO HANYA BISA KE FORMAT GAMBAR
+    if (fileExt === '.ico') {
+        const allowedIconTargets = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'tiff'];
+        if (!allowedIconTargets.includes(targetFormat)) {
+            return {
+                canConvert: false,
+                type: 'error',
+                message: `ICO files can only be converted to image formats, not to ${targetFormat.toUpperCase()}`,
+                badge: 'IMAGE ONLY'
+            };
+        }
+        return {
+            canConvert: true,
+            type: 'info',
+            message: 'ICO icon conversion',
+            badge: 'ICON'
+        };
+    }
+    
+    // SVG HANYA BISA KE RASTER, TIDAK BISA DARI RASTER
+    if (fileExt === '.svg') {
+        const rasterFormats = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'ico'];
+        if (rasterFormats.includes(targetFormat)) {
+            return {
+                canConvert: true,
+                type: 'info',
+                message: 'SVG vector to raster image conversion',
+                badge: 'VECTOR'
+            };
+        } else {
+            return {
+                canConvert: false,
+                type: 'error',
+                message: 'SVG files can only be converted to raster image formats',
+                badge: 'TO RASTER ONLY'
+            };
+        }
+    }
+    
+    // PDF HANYA BISA KE GAMBAR
+    if (fileExt === '.pdf') {
+        const imageFormats = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp', 'tiff'];
+        if (!imageFormats.includes(targetFormat) && targetFormat !== 'pdf') {
+            return {
+                canConvert: false,
+                type: 'error',
+                message: 'PDF files can only be converted to image formats',
+                badge: 'TO IMAGE ONLY'
+            };
+        }
+        return {
+            canConvert: true,
+            type: 'info',
+            message: 'PDF document conversion (all pages)',
+            badge: 'PDF'
+        };
+    }
+    
+    // GAMBAR BIASA BISA KE SEMUA FORMAT (kecuali format sama)
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff'];
+    if (imageExtensions.includes(fileExt)) {
+        return {
+            canConvert: true,
+            type: 'success',
+            message: 'Standard image format conversion'
+        };
+    }
+    
+    return {
+        canConvert: true,
+        type: 'success'
+    };
+}
+
+// Helper: Dapatkan format file
+function getFileFormat(file) {
+    const fileName = file.name.toLowerCase();
+    
+    if (fileName.endsWith('.jpeg') || fileName.endsWith('.jpg')) return 'jpeg';
+    if (fileName.endsWith('.png')) return 'png';
+    if (fileName.endsWith('.webp')) return 'webp';
+    if (fileName.endsWith('.gif')) return 'gif';
+    if (fileName.endsWith('.bmp')) return 'bmp';
+    if (fileName.endsWith('.tiff') || fileName.endsWith('.tif')) return 'tiff';
+    if (fileName.endsWith('.svg')) return 'svg';
+    if (fileName.endsWith('.ico')) return 'ico';
+    if (fileName.endsWith('.pdf')) return 'pdf';
+    
+    // Cek dari MIME type
+    if (file.type.includes('jpeg')) return 'jpeg';
+    if (file.type.includes('png')) return 'png';
+    if (file.type.includes('webp')) return 'webp';
+    if (file.type.includes('gif')) return 'gif';
+    if (file.type.includes('bmp')) return 'bmp';
+    if (file.type.includes('tiff')) return 'tiff';
+    if (file.type.includes('svg')) return 'svg';
+    if (file.type.includes('pdf')) return 'pdf';
+    
+    return 'unknown';
+}
+
+// ==================== INISIALISASI SORTABLE ====================
+
+function initSortable() {
+    if (sortable) {
+        sortable.destroy();
+    }
+    sortable = new Sortable(fileGrid, {
+        animation: 200,
+        ghostClass: 'sortable-ghost',
+        dragClass: 'sortable-drag',
+        handle: '.file-card',
+        onEnd: function(evt) {
+            const item = uploadedFiles.splice(evt.oldIndex, 1)[0];
+            uploadedFiles.splice(evt.newIndex, 0, item);
+            showNotification('success', 'Order Changed', 'Files have been reordered');
+        }
+    });
+}
+
+// ==================== EVENT LISTENERS ====================
+
+uploadSection.addEventListener('click', () => fileInput.click());
+
+uploadSection.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadSection.classList.add('dragover');
+});
+
+uploadSection.addEventListener('dragleave', () => {
+    uploadSection.classList.remove('dragover');
+});
+
+uploadSection.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadSection.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+});
+
+fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+});
+
+formatSelect.addEventListener('change', (e) => {
+    const format = e.target.value;
+    if (format === 'pdf') {
+        pdfOptions.classList.remove('hidden');
+        multiFileHint.textContent = 'Select multiple images to combine into PDF';
+    } else {
+        pdfOptions.classList.add('hidden');
+        multiFileHint.textContent = 'Select multiple files for batch processing';
+    }
+});
+
+// PDF size selector
+document.querySelectorAll('.pdf-size-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.pdf-size-option').forEach(o => o.classList.remove('active'));
+        this.classList.add('active');
+        selectedPdfSize = this.dataset.size;
+    });
+});
+
+qualitySlider.addEventListener('input', (e) => {
+    qualityValue.textContent = e.target.value + '%';
+});
+
+// ==================== HANDLE FILES ====================
+
+function isFileSupported(file) {
+    const fileName = file.name.toLowerCase();
+    const fileType = file.type.toLowerCase();
+    
+    if (supportedImageTypes.includes(fileType)) {
+        return true;
+    }
+    
+    for (const ext of supportedExtensions) {
+        if (fileName.endsWith(ext)) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+function handleFiles(files) {
+    const newFiles = Array.from(files);
+    
+    if (newFiles.length === 0) return;
+    
+    const supportedFiles = [];
+    const unsupportedFiles = [];
+    
+    newFiles.forEach(file => {
+        if (isFileSupported(file)) {
+            supportedFiles.push(file);
+        } else {
+            unsupportedFiles.push(file.name);
+        }
+    });
+    
+    if (unsupportedFiles.length > 0) {
+        showNotification('warning', 'Limited Support', 
+            `${unsupportedFiles.length} file(s) may not convert properly`);
+    }
+    
+    if (supportedFiles.length === 0) return;
+    
+    uploadedFiles = uploadedFiles.concat(supportedFiles);
+    displayFiles();
+    actionButtons.classList.remove('hidden');
+    fileSection.classList.remove('hidden');
+    
+    showNotification('info', 'Files Added', `${supportedFiles.length} file(s) added`);
+}
+
+// ==================== DISPLAY FILES ====================
+
+function displayFiles() {
+    fileGrid.innerHTML = '';
+    fileCount.textContent = `${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''}`;
+
+    uploadedFiles.forEach((file, index) => {
+        const card = document.createElement('div');
+        card.className = 'file-card';
+        card.dataset.index = index;
+        
+        // Cek format file
+        const fileFormat = getFileFormat(file);
+        
+        // Cek apakah format sama dengan yang dipilih
+        const currentFormat = formatSelect.value;
+        let sameFormatWarning = '';
+        if (fileFormat === currentFormat) {
+            sameFormatWarning = `Already ${currentFormat.toUpperCase()}`;
+        }
+        
+        // Cek kemampuan konversi untuk format yang dipilih
+        const validation = canConvertFormat(file, currentFormat);
+        
+        // Tambahkan class jika tidak bisa dikonversi
+        if (!validation.canConvert) {
+            card.classList.add('unconvertible');
+            card.title = validation.message;
+        }
+        
+        const preview = document.createElement('div');
+        preview.className = 'file-preview';
+        
+        let iconClass = 'fas fa-file-image';
+        let badgeText = '';
+        let iconColor = 'var(--accent)';
+        
+        // Determine icon and badge based on file type
+        const fileName = file.name.toLowerCase();
+        
+        if (fileName.endsWith('.pdf')) {
+            iconClass = 'fas fa-file-pdf';
+            badgeText = 'PDF';
+        } else if (fileName.endsWith('.svg')) {
+            iconClass = 'fas fa-file-code';
+            badgeText = 'SVG';
+        } else if (fileName.endsWith('.ico')) {
+            iconClass = 'fas fa-file-image';
+            badgeText = 'ICO';
+        }
+        
+        // Add format badge
+        if (fileFormat !== 'unknown') {
+            const formatBadge = document.createElement('div');
+            formatBadge.className = 'format-badge';
+            formatBadge.textContent = fileFormat.toUpperCase();
+            formatBadge.title = `Current format: ${fileFormat.toUpperCase()}`;
+            preview.appendChild(formatBadge);
+        }
+        
+        // Add validation badge
+        if (validation.badge) {
+            const badge = document.createElement('div');
+            badge.className = validation.type === 'error' ? 'error-badge' : 'warning-badge';
+            badge.textContent = validation.badge;
+            badge.title = validation.message;
+            preview.appendChild(badge);
+        }
+        
+        // Add same format warning
+        if (sameFormatWarning) {
+            const sameFormatBadge = document.createElement('div');
+            sameFormatBadge.className = 'warning-badge';
+            sameFormatBadge.style.top = '2.5rem';
+            sameFormatBadge.style.left = '0.5rem';
+            sameFormatBadge.style.background = 'var(--warning)';
+            sameFormatBadge.textContent = sameFormatWarning;
+            sameFormatBadge.title = 'No conversion needed - same format';
+            preview.appendChild(sameFormatBadge);
+        }
+        
+        if (file.type.startsWith('image/') && !fileName.endsWith('.svg')) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.alt = file.name;
+            img.loading = 'lazy';
+            img.dataset.url = img.src;
+            
+            if (validation.canConvert) {
+                preview.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openPreviewModal(file);
+                });
+            } else {
+                preview.style.cursor = 'not-allowed';
+                preview.title = validation.message;
+            }
+            
+            preview.appendChild(img);
+        } else {
+            const icon = document.createElement('i');
+            icon.className = iconClass;
+            icon.style.color = iconColor;
+            preview.appendChild(icon);
+            
+            // Add page count for PDF
+            if (fileName.endsWith('.pdf')) {
+                const pageCount = document.createElement('div');
+                pageCount.className = 'slide-count';
+                pageCount.textContent = '? pages';
+                pageCount.id = `page-count-${index}`;
+                preview.appendChild(pageCount);
+                
+                readPDFPageCount(file, index);
+            }
+            
+            preview.style.cursor = validation.canConvert ? 'pointer' : 'not-allowed';
+            
+            if (validation.canConvert) {
+                preview.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openPreviewModal(file);
+                });
+            }
+        }
+        
+        const dragHandle = document.createElement('div');
+        dragHandle.className = 'drag-handle';
+        dragHandle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+        
+        const fileNameDiv = document.createElement('div');
+        fileNameDiv.className = 'file-name';
+        fileNameDiv.title = file.name;
+        fileNameDiv.textContent = file.name;
+        
+        const fileSize = document.createElement('div');
+        fileSize.className = 'file-size';
+        fileSize.textContent = formatBytes(file.size);
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        removeBtn.onclick = (e) => {
+            e.stopPropagation();
+            removeFile(index);
+        };
+        
+        card.appendChild(dragHandle);
+        card.appendChild(preview);
+        card.appendChild(fileNameDiv);
+        card.appendChild(fileSize);
+        card.appendChild(removeBtn);
+        
+        fileGrid.appendChild(card);
+    });
+    
+    initSortable();
+}
+
+// ==================== READ PDF PAGE COUNT ====================
+
+async function readPDFPageCount(file, index) {
+    try {
+        if (file.name.toLowerCase().endsWith('.pdf')) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            
+            const pageCountElement = document.getElementById(`page-count-${index}`);
+            if (pageCountElement) {
+                pageCountElement.textContent = `${pdf.numPages} page${pdf.numPages > 1 ? 's' : ''}`;
+            }
+        }
+    } catch (error) {
+        console.log('Cannot read PDF page count:', error);
+    }
+}
+
+// ==================== CONVERT IMAGES (MAIN FUNCTION) ====================
+
+async function convertImages() {
+    const format = formatSelect.value;
+    const quality = parseInt(qualitySlider.value) / 100;
+    
+    // 1. VALIDASI SEMUA FILE SEBELUM KONVERSI
+    const unconvertibleFiles = [];
+    const warningFiles = [];
+    
+    for (const file of uploadedFiles) {
+        const validation = canConvertFormat(file, format);
+        
+        if (!validation.canConvert) {
+            unconvertibleFiles.push({
+                name: file.name,
+                reason: validation.message,
+                type: validation.type
+            });
+        } else if (validation.type === 'warning') {
+            warningFiles.push({
+                name: file.name,
+                message: validation.message
+            });
+        }
+    }
+    
+    // Tampilkan error jika ada file yang tidak bisa dikonversi
+    if (unconvertibleFiles.length > 0) {
+        const errorFiles = unconvertibleFiles.filter(f => f.type === 'error');
+        const warningOnlyFiles = unconvertibleFiles.filter(f => f.type === 'warning');
+        
+        if (errorFiles.length > 0) {
+            const fileList = errorFiles.map(f => f.name).slice(0, 3).join(', ');
+            const moreText = errorFiles.length > 3 ? ` and ${errorFiles.length - 3} more` : '';
+            
+            showNotification('error', 'Conversion Not Possible', 
+                `${errorFiles.length} file(s) cannot be converted: ${fileList}${moreText}`);
+            
+            // Tampilkan detail untuk setiap file
+            errorFiles.forEach(file => {
+                console.warn(`Cannot convert ${file.name}: ${file.reason}`);
+            });
+            
+            return; // Stop conversion
+        }
+    }
+    
+    // Tampilkan warning untuk file dengan konversi terbatas
+    if (warningFiles.length > 0) {
+        warningFiles.forEach(file => {
+            showNotification('warning', 'Conversion Warning', 
+                `${file.name}: ${file.message}`);
+        });
+    }
+    
+    loading.classList.remove('hidden');
+    convertBtn.disabled = true;
+
+    try {
+        if (format === 'pdf') {
+            await convertToPDF();
+        } else {
+            await convertMultipleFiles(format, quality);
+        }
+    } catch (error) {
+        console.error('Conversion error:', error);
+        showNotification('error', 'Conversion Failed', 'An error occurred during conversion. Please try again.');
+    } finally {
+        loading.classList.add('hidden');
+        convertBtn.disabled = false;
+    }
+}
+
+// ==================== CONVERT MULTIPLE FILES ====================
+
+async function convertMultipleFiles(format, quality) {
+    convertedBlobs = [];
+    let totalOriginalSize = 0;
+    let totalConvertedSize = 0;
+    
+    const allConvertedFiles = [];
+    
+    for (const file of uploadedFiles) {
+        try {
+            let convertedItems = [];
+            
+            // Determine file type and convert accordingly
+            const fileName = file.name.toLowerCase();
+            const baseFileName = file.name.replace(/\.[^/.]+$/, "");
+            
+            if (file.type.startsWith('image/') && !fileName.endsWith('.svg')) {
+                // Standard image files - single file
+                const blobs = await convertImageFile(file, format, quality);
+                convertedItems = blobs;
+                totalOriginalSize += file.size;
+                blobs.forEach(blob => totalConvertedSize += blob.blob.size);
+                
+            } else if (fileName.endsWith('.svg')) {
+                // SVG files - single file
+                const blob = await convertSVGToImage(file, format, quality);
+                convertedItems.push({
+                    blob: blob,
+                    name: baseFileName + '_converted.' + format
+                });
+                totalOriginalSize += file.size;
+                totalConvertedSize += blob.size;
+                
+            } else if (fileName.endsWith('.ico')) {
+                // ICO files - single file
+                const blob = await convertICOToImage(file, format, quality);
+                convertedItems.push({
+                    blob: blob,
+                    name: baseFileName + '_converted.' + format
+                });
+                totalOriginalSize += file.size;
+                totalConvertedSize += blob.size;
+                
+            } else if (fileName.endsWith('.pdf')) {
+                // PDF files - multiple pages dengan penamaan berurutan
+                loading.querySelector('div:last-child').textContent = 
+                    `Processing PDF: ${file.name}`;
+                const images = await convertPdfToImages(file, format, quality);
+                convertedItems = images;
+                totalOriginalSize += file.size;
+                images.forEach(img => totalConvertedSize += img.blob.size);
+            }
+            
+            // Add to all converted files
+            allConvertedFiles.push({
+                originalFile: file,
+                convertedItems: convertedItems
+            });
+            
+        } catch (error) {
+            console.error(`Error converting ${file.name}:`, error);
+            showNotification('warning', `Failed to Convert ${file.name}`, 'This file will be skipped');
+        }
+    }
+    
+    // Handle output based on number of files
+    if (allConvertedFiles.length === 1 && 
+        allConvertedFiles[0].convertedItems.length === 1) {
+        
+        convertedBlobs = allConvertedFiles[0].convertedItems;
+        const reduction = ((1 - totalConvertedSize / totalOriginalSize) * 100).toFixed(1);
+        
+        showResultModal({
+            totalFiles: 1,
+            originalSize: totalOriginalSize,
+            finalSize: totalConvertedSize,
+            compression: reduction > 0 ? reduction : 0,
+            isPdf: false,
+            isSingleFile: true,
+            fileName: uploadedFiles[0].name.replace(/\.[^/.]+$/, "") + '_converted.' + format
+        });
+        
+    } else {
+        // Multiple files or multiple pages
+        const zipFileName = uploadedFiles.length === 1 
+            ? uploadedFiles[0].name.replace(/\.[^/.]+$/, "") + '_converted.zip'
+            : 'converted_files.zip';
+        
+        // Create ZIP with all files
+        const zip = new JSZip();
+        
+        allConvertedFiles.forEach((fileData, fileIndex) => {
+            const originalFile = fileData.originalFile;
+            const convertedItems = fileData.convertedItems;
+            
+            if (convertedItems.length === 1) {
+                // Single file
+                zip.file(convertedItems[0].name, convertedItems[0].blob);
+            } else {
+                // Multiple files (PDF pages)
+                const folderName = originalFile.name.replace(/\.[^/.]+$/, "");
+                const folder = zip.folder(folderName);
+                
+                convertedItems.forEach((item, itemIndex) => {
+                    folder.file(item.name, item.blob);
+                });
+            }
+        });
+        
+        // Generate ZIP blob
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        
+        convertedBlobs = [{
+            blob: zipBlob,
+            name: zipFileName,
+            isZip: true
+        }];
+        
+        const reduction = ((1 - zipBlob.size / totalOriginalSize) * 100).toFixed(1);
+        
+        showResultModal({
+            totalFiles: uploadedFiles.length,
+            originalSize: totalOriginalSize,
+            finalSize: zipBlob.size,
+            compression: reduction > 0 ? reduction : 0,
+            isPdf: false,
+            isSingleFile: false,
+            isZip: true,
+            zipFileName: zipFileName
+        });
+    }
+}
+
+// ==================== CONVERSION FUNCTIONS ====================
+
+// Convert standard image file
+async function convertImageFile(file, format, quality) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                
+                // Handle transparent background for JPEG
+                if (format === 'jpeg' || format === 'jpg') {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                
+                ctx.drawImage(img, 0, 0);
+                
+                const mimeType = formatMimeTypes[format] || `image/${format === 'jpg' ? 'jpeg' : format}`;
+                canvas.toBlob((blob) => resolve([{
+                    blob: blob,
+                    name: file.name.replace(/\.[^/.]+$/, "") + '_converted.' + format
+                }]), mimeType, quality);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// Convert SVG to image
+async function convertSVGToImage(file, format, quality) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const svgContent = e.target.result;
+            
+            try {
+                // Parse SVG untuk mendapatkan ukuran
+                const parser = new DOMParser();
+                const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
+                const svgElement = svgDoc.documentElement;
+                
+                let width = parseInt(svgElement.getAttribute('width')) || 800;
+                let height = parseInt(svgElement.getAttribute('height')) || 600;
+                const viewBox = svgElement.getAttribute('viewBox');
+                
+                if (viewBox) {
+                    const viewBoxValues = viewBox.split(' ').map(Number);
+                    if (viewBoxValues.length === 4) {
+                        width = viewBoxValues[2] || width;
+                        height = viewBoxValues[3] || height;
+                    }
+                }
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                
+                // Render SVG ke canvas menggunakan canvg
+                const v = await canvg.fromString(ctx, svgContent);
+                await v.render();
+                
+                // Convert canvas to blob
+                const mimeType = formatMimeTypes[format] || `image/${format === 'jpg' ? 'jpeg' : format}`;
+                
+                if (format === 'jpeg' || format === 'jpg') {
+                    const jpegCanvas = document.createElement('canvas');
+                    jpegCanvas.width = width;
+                    jpegCanvas.height = height;
+                    const jpegCtx = jpegCanvas.getContext('2d');
+                    
+                    jpegCtx.fillStyle = 'white';
+                    jpegCtx.fillRect(0, 0, width, height);
+                    jpegCtx.drawImage(canvas, 0, 0);
+                    
+                    jpegCanvas.toBlob((blob) => resolve(blob), mimeType, quality);
+                } else {
+                    canvas.toBlob((blob) => resolve(blob), mimeType, quality);
+                }
+                
+            } catch (error) {
+                console.error('SVG conversion error:', error);
+                // Fallback
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 800;
+                canvas.height = 600;
+                
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'black';
+                ctx.font = '20px Inter';
+                ctx.fillText(`SVG File: ${file.name}`, 50, 50);
+                ctx.fillText('SVG conversion completed', 50, 100);
+                
+                const mimeType = formatMimeTypes[format] || `image/${format === 'jpg' ? 'jpeg' : format}`;
+                canvas.toBlob((blob) => resolve(blob), mimeType, quality);
+            }
+        };
+        reader.readAsText(file);
+    });
+}
+
+// Convert ICO to image
+async function convertICOToImage(file, format, quality) {
+    return new Promise(async (resolve) => {
+        try {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const arrayBuffer = e.target.result;
+                
+                try {
+                    // Parse ICO file
+                    const dataView = new DataView(arrayBuffer);
+                    
+                    // Check ICO signature
+                    const reserved = dataView.getUint16(0, true);
+                    const type = dataView.getUint16(2, true);
+                    const count = dataView.getUint16(4, true);
+                    
+                    if (reserved !== 0 || type !== 1) {
+                        throw new Error('Invalid ICO file');
+                    }
+                    
+                    // Find best quality image
+                    let bestWidth = 0;
+                    let bestHeight = 0;
+                    let bestOffset = 0;
+                    
+                    for (let i = 0; i < count; i++) {
+                        const offset = 6 + i * 16;
+                        const width = dataView.getUint8(offset) || 256;
+                        const height = dataView.getUint8(offset + 1) || 256;
+                        const imageOffset = dataView.getUint32(offset + 12, true);
+                        
+                        if (width * height > bestWidth * bestHeight) {
+                            bestWidth = width;
+                            bestHeight = height;
+                            bestOffset = imageOffset;
+                        }
+                    }
+                    
+                    if (bestOffset === 0) {
+                        throw new Error('No valid image found in ICO');
+                    }
+                    
+                    // Extract image data
+                    const imageData = new Uint8Array(arrayBuffer, bestOffset);
+                    
+                    // Try as PNG first
+                    const pngSignature = [137, 80, 78, 71, 13, 10, 26, 10];
+                    let isPNG = true;
+                    
+                    for (let i = 0; i < 8; i++) {
+                        if (imageData[i] !== pngSignature[i]) {
+                            isPNG = false;
+                            break;
+                        }
+                    }
+                    
+                    let blob;
+                    if (isPNG) {
+                        // PNG data
+                        blob = new Blob([imageData], { type: 'image/png' });
+                    } else {
+                        // BMP data
+                        const img = new Image();
+                        const url = URL.createObjectURL(new Blob([imageData], { type: 'image/bmp' }));
+                        
+                        await new Promise((resolveImg) => {
+                            img.onload = resolveImg;
+                            img.onerror = () => {
+                                throw new Error('Failed to load BMP from ICO');
+                            };
+                            img.src = url;
+                        });
+                        
+                        URL.revokeObjectURL(url);
+                        
+                        const canvas = document.createElement('canvas');
+                        canvas.width = bestWidth;
+                        canvas.height = bestHeight;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        
+                        const mimeType = formatMimeTypes[format] || `image/${format === 'jpg' ? 'jpeg' : format}`;
+                        
+                        if (format === 'jpeg' || format === 'jpg') {
+                            const jpegCanvas = document.createElement('canvas');
+                            jpegCanvas.width = bestWidth;
+                            jpegCanvas.height = bestHeight;
+                            const jpegCtx = jpegCanvas.getContext('2d');
+                            jpegCtx.fillStyle = 'white';
+                            jpegCtx.fillRect(0, 0, bestWidth, bestHeight);
+                            jpegCtx.drawImage(canvas, 0, 0);
+                            
+                            blob = await new Promise(resolveBlob => {
+                                jpegCanvas.toBlob(resolveBlob, mimeType, quality);
+                            });
+                        } else {
+                            blob = await new Promise(resolveBlob => {
+                                canvas.toBlob(resolveBlob, mimeType, quality);
+                            });
+                        }
+                    }
+                    
+                    resolve(blob);
+                    
+                } catch (icoError) {
+                    console.error('ICO parsing error:', icoError);
+                    // Fallback
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 256;
+                    canvas.height = 256;
+                    
+                    ctx.fillStyle = '#4fa8ff';
+                    ctx.fillRect(0, 0, 256, 256);
+                    
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 80px Inter';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('ICO', 128, 128);
+                    
+                    const mimeType = formatMimeTypes[format] || `image/${format === 'jpg' ? 'jpeg' : format}`;
+                    
+                    if (format === 'jpeg' || format === 'jpg') {
+                        const jpegCanvas = document.createElement('canvas');
+                        jpegCanvas.width = 256;
+                        jpegCanvas.height = 256;
+                        const jpegCtx = jpegCanvas.getContext('2d');
+                        jpegCtx.fillStyle = 'white';
+                        jpegCtx.fillRect(0, 0, 256, 256);
+                        jpegCtx.drawImage(canvas, 0, 0);
+                        
+                        jpegCanvas.toBlob((blob) => resolve(blob), mimeType, quality);
+                    } else {
+                        canvas.toBlob((blob) => resolve(blob), mimeType, quality);
+                    }
+                }
+            };
+            
+            reader.onerror = () => {
+                throw new Error('Failed to read ICO file');
+            };
+            
+            reader.readAsArrayBuffer(file);
+            
+        } catch (error) {
+            console.error('ICO conversion error:', error);
+            // Final fallback
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 256;
+            
+            ctx.fillStyle = '#4fa8ff';
+            ctx.fillRect(0, 0, 256, 256);
+            
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 80px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('ICO', 128, 128);
+            
+            const mimeType = formatMimeTypes[format] || `image/${format === 'jpg' ? 'jpeg' : format}`;
+            
+            if (format === 'jpeg' || format === 'jpg') {
+                const jpegCanvas = document.createElement('canvas');
+                jpegCanvas.width = 256;
+                jpegCanvas.height = 256;
+                const jpegCtx = jpegCanvas.getContext('2d');
+                jpegCtx.fillStyle = 'white';
+                jpegCtx.fillRect(0, 0, 256, 256);
+                jpegCtx.drawImage(canvas, 0, 0);
+                
+                jpegCanvas.toBlob((blob) => resolve(blob), mimeType, quality);
+            } else {
+                canvas.toBlob((blob) => resolve(blob), mimeType, quality);
+            }
+        }
+    });
+}
+
+// Convert PDF to images dengan penamaan berurutan
+async function convertPdfToImages(file, format, quality) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const images = [];
+            
+            // Convert each page
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                try {
+                    loading.querySelector('div:last-child').textContent = 
+                        `Processing PDF page ${pageNum}/${pdf.numPages}`;
+                    
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 2.0 });
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d', { alpha: false });
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    // Render PDF page ke canvas
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport,
+                        background: 'white'
+                    };
+                    
+                    await page.render(renderContext).promise;
+                    
+                    const mimeType = formatMimeTypes[format] || `image/${format === 'jpg' ? 'jpeg' : format}`;
+                    
+                    let finalCanvas = canvas;
+                    
+                    // Jika format JPEG, pastikan tidak ada transparansi
+                    if (format === 'jpeg' || format === 'jpg') {
+                        const jpegCanvas = document.createElement('canvas');
+                        jpegCanvas.width = canvas.width;
+                        jpegCanvas.height = canvas.height;
+                        const jpegCtx = jpegCanvas.getContext('2d');
+                        
+                        jpegCtx.fillStyle = 'white';
+                        jpegCtx.fillRect(0, 0, jpegCanvas.width, jpegCanvas.height);
+                        jpegCtx.drawImage(canvas, 0, 0);
+                        finalCanvas = jpegCanvas;
+                    }
+                    
+                    const blob = await new Promise(resolve => {
+                        finalCanvas.toBlob((b) => resolve(b), mimeType, quality);
+                    });
+                    
+                    // NAMA FILE BERURUTAN: 1.png, 2.png, 3.png, dst
+                    images.push({
+                        blob: blob,
+                        name: `${pageNum}.${format}`
+                    });
+                    
+                } catch (pageError) {
+                    console.error(`Error converting page ${pageNum}:`, pageError);
+                }
+            }
+            
+            if (images.length === 0) {
+                throw new Error('No pages could be converted');
+            }
+            
+            resolve(images);
+            
+        } catch (error) {
+            console.error('Error converting PDF:', error);
+            reject(error);
+        }
+    });
+}
+
+// ==================== CONVERT TO PDF ====================
+
+async function convertToPDF() {
+    const { jsPDF } = window.jspdf;
+    
+    if (selectedPdfSize === 'auto') {
+        const firstFile = uploadedFiles[0];
+        const dataUrl = await fileToDataUrl(firstFile);
+        const img = await loadImage(dataUrl);
+        
+        const pixelToMm = 0.264583;
+        const pdfWidth = img.width * pixelToMm;
+        const pdfHeight = img.height * pixelToMm;
+        
+        const pdf = new jsPDF({
+            orientation: pdfHeight > pdfWidth ? 'portrait' : 'landscape',
+            unit: 'mm',
+            format: [pdfWidth, pdfHeight]
+        });
+        
+        for (let i = 0; i < uploadedFiles.length; i++) {
+            const file = uploadedFiles[i];
+            const imgDataUrl = await fileToDataUrl(file);
+            const imgObj = await loadImage(imgDataUrl);
+            
+            if (i > 0) {
+                const w = imgObj.width * pixelToMm;
+                const h = imgObj.height * pixelToMm;
+                pdf.addPage([w, h]);
+            }
+            
+            const pageWidth = imgObj.width * pixelToMm;
+            const pageHeight = imgObj.height * pixelToMm;
+            
+            pdf.addImage(imgDataUrl, 'JPEG', 0, 0, pageWidth, pageHeight);
+        }
+        
+        convertedBlobs = [{ 
+            blob: pdf.output('blob'), 
+            name: 'converted.pdf' 
+        }];
+        
+        let totalOriginalSize = 0;
+        uploadedFiles.forEach(f => totalOriginalSize += f.size);
+        
+        showResultModal({
+            totalFiles: uploadedFiles.length,
+            originalSize: totalOriginalSize,
+            finalSize: convertedBlobs[0].blob.size,
+            compression: 0,
+            isPdf: true
+        });
+        return;
+    }
+    
+    const sizes = {
+        a4: [210, 297],
+        letter: [215.9, 279.4],
+        legal: [215.9, 355.6]
+    };
+
+    const [width, height] = sizes[selectedPdfSize];
+    const pdf = new jsPDF({
+        orientation: height > width ? 'portrait' : 'landscape',
+        unit: 'mm',
+        format: [width, height]
+    });
+
+    for (let i = 0; i < uploadedFiles.length; i++) {
+        const file = uploadedFiles[i];
+        const dataUrl = await fileToDataUrl(file);
+        
+        if (i > 0) pdf.addPage([width, height]);
+        
+        const img = await loadImage(dataUrl);
+        const imgAspect = img.width / img.height;
+        const pageAspect = width / height;
+        
+        let imgWidth, imgHeight, x, y;
+        
+        if (imgAspect > pageAspect) {
+            imgWidth = width;
+            imgHeight = width / imgAspect;
+            x = 0;
+            y = (height - imgHeight) / 2;
+        } else {
+            imgHeight = height;
+            imgWidth = height * imgAspect;
+            x = (width - imgWidth) / 2;
+            y = 0;
+        }
+        
+        pdf.addImage(dataUrl, 'JPEG', x, y, imgWidth, imgHeight);
+    }
+
+    convertedBlobs = [{ 
+        blob: pdf.output('blob'), 
+        name: 'converted.pdf' 
+    }];
+    
+    let totalOriginalSize = 0;
+    uploadedFiles.forEach(f => totalOriginalSize += f.size);
+    
+    showResultModal({
+        totalFiles: uploadedFiles.length,
+        originalSize: totalOriginalSize,
+        finalSize: convertedBlobs[0].blob.size,
+        compression: 0,
+        isPdf: true
+    });
+}
+
+// ==================== HELPER FUNCTIONS ====================
+
+function fileToDataUrl(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(file);
+    });
+}
+
+function loadImage(src) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.src = src;
+    });
+}
+
+// ==================== MODAL FUNCTIONS ====================
+
+function showResultModal(data) {
+    const modalIcon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    const format = formatSelect.value;
+    
+    if (data.isPdf) {
+        modalTitle.textContent = 'PDF Created Successfully!';
+        modalBody.textContent = `${data.totalFiles} image(s) successfully combined into 1 PDF file.`;
+        fileNameInput.value = 'converted.pdf';
+    } else if (data.isSingleFile) {
+        modalTitle.textContent = 'Conversion Successful!';
+        modalBody.textContent = `1 file successfully converted with ${qualitySlider.value}% quality.`;
+        fileNameInput.value = data.fileName || `${uploadedFiles[0].name.replace(/\.[^/.]+$/, "")}_converted.${format}`;
+    } else if (data.isZip) {
+        modalTitle.textContent = 'Conversion Successful!';
+        modalBody.innerHTML = `
+            <p>${data.totalFiles} file(s) successfully converted with ${qualitySlider.value}% quality.</p>
+            <p><strong>PDF:</strong> All pages converted and packaged in ZIP.</p>
+            <p><strong>Other images:</strong> Converted to selected format.</p>
+        `;
+        fileNameInput.value = data.zipFileName || 'converted_files.zip';
+    } else {
+        modalTitle.textContent = 'Conversion Successful!';
+        modalBody.textContent = `${data.totalFiles} file(s) successfully converted with ${qualitySlider.value}% quality.`;
+        fileNameInput.value = 'converted_files.zip';
+    }
+    
+    document.getElementById('statTotalFiles').textContent = data.totalFiles;
+    document.getElementById('statOriginalSize').textContent = formatBytes(data.originalSize);
+    document.getElementById('statFinalSize').textContent = formatBytes(data.finalSize);
+    document.getElementById('statCompression').textContent = data.compression + '%';
+    
+    resultModal.classList.add('active');
+}
+
+function downloadFromModal() {
+    const fileName = fileNameInput.value.trim();
+    
+    if (!fileName) {
+        showNotification('warning', 'File Name Empty', 'Please enter a file name first');
+        return;
+    }
+
+    const format = formatSelect.value;
+    const isSingleFile = format === 'pdf' || 
+        (convertedBlobs.length === 1 && !convertedBlobs[0].isZip);
+    
+    if (isSingleFile) {
+        // Single file download
+        const blob = convertedBlobs[0].blob;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        let finalFileName = fileName;
+        if (format === 'pdf' && !fileName.toLowerCase().endsWith('.pdf')) {
+            finalFileName += '.pdf';
+        } else if (!fileName.includes('.')) {
+            finalFileName += `.${format}`;
+        }
+        
+        a.download = finalFileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showNotification('success', 'Download Started', `File ${finalFileName} downloaded successfully`);
+    } else {
+        // ZIP download
+        downloadMultipleFilesAsZip(fileName);
+    }
+    
+    closeModal();
+}
+
+function downloadMultipleFilesAsZip(zipFileName) {
+    try {
+        const blob = convertedBlobs[0].blob;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        let finalFileName = zipFileName;
+        if (!zipFileName.toLowerCase().endsWith('.zip')) {
+            finalFileName += '.zip';
+        }
+        
+        a.download = finalFileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showNotification('success', 'Download Started', `ZIP file ${finalFileName} downloaded successfully`);
+    } catch (error) {
+        console.error('Error downloading ZIP:', error);
+        showNotification('error', 'Download Failed', 'An error occurred while downloading');
+    }
+}
+
+function closeModal() {
+    resultModal.classList.remove('active');
+}
+
+// ==================== PREVIEW MODAL ====================
+
+function openPreviewModal(file) {
+    const previewContainer = document.getElementById('previewContainer');
+    const previewTitle = document.getElementById('previewTitle');
+    
+    previewContainer.innerHTML = '';
+    
+    if (file.type.startsWith('image/') && !file.name.toLowerCase().endsWith('.svg')) {
+        const img = document.createElement('img');
+        img.className = 'preview-img';
+        img.src = URL.createObjectURL(file);
+        img.alt = file.name;
+        img.onload = () => URL.revokeObjectURL(img.src);
+        previewContainer.appendChild(img);
+    } else if (file.name.toLowerCase().endsWith('.pdf')) {
+        // PDF preview menggunakan pdf.js
+        const canvas = document.createElement('canvas');
+        canvas.className = 'preview-img';
+        const context = canvas.getContext('2d');
+        
+        previewContainer.appendChild(canvas);
+        
+        // Load first page of PDF
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const pdf = await pdfjsLib.getDocument({ data: e.target.result }).promise;
+                const page = await pdf.getPage(1);
+                const viewport = page.getViewport({ scale: 1.0 });
+                
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                
+                await page.render(renderContext).promise;
+            } catch (error) {
+                console.error('PDF preview error:', error);
+                const message = document.createElement('div');
+                message.style.color = 'var(--text-secondary)';
+                message.style.textAlign = 'center';
+                message.style.padding = '2rem';
+                message.innerHTML = `
+                    <i class="fas fa-file-pdf" style="font-size: 3rem; margin-bottom: 1rem; color: var(--accent);"></i>
+                    <div style="font-weight: 600;">PDF Preview</div>
+                    <div>${file.name}</div>
+                `;
+                previewContainer.innerHTML = '';
+                previewContainer.appendChild(message);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    } else {
+        const message = document.createElement('div');
+        message.style.color = 'var(--text-secondary)';
+        message.style.textAlign = 'center';
+        message.style.padding = '2rem';
+        
+        let iconClass = 'fas fa-file';
+        if (file.name.toLowerCase().endsWith('.svg')) {
+            iconClass = 'fas fa-file-code';
+        } else if (file.name.toLowerCase().endsWith('.ico')) {
+            iconClass = 'fas fa-file-image';
+        }
+        
+        message.innerHTML = `
+            <i class="${iconClass}" style="font-size: 3rem; margin-bottom: 1rem; color: var(--accent);"></i>
+            <div style="font-weight: 600; margin-bottom: 0.5rem;">${file.name.split('.').pop().toUpperCase()} File</div>
+            <div>${file.name}</div>
+            <div style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted);">
+                ${file.type || 'Unknown file type'}
+            </div>
+        `;
+        previewContainer.appendChild(message);
+    }
+    
+    previewTitle.textContent = `Preview: ${file.name}`;
+    previewModal.classList.add('active');
+}
+
+function closePreviewModal() {
+    previewModal.classList.remove('active');
+}
+
+// ==================== UTILITY FUNCTIONS ====================
+
+function resetAll() {
+    uploadedFiles = [];
+    convertedBlobs = [];
+    fileInput.value = '';
+    fileSection.classList.add('hidden');
+    actionButtons.classList.add('hidden');
+    showNotification('info', 'Reset Successful', 'All data has been reset');
+}
+
+function removeFile(index) {
+    uploadedFiles.splice(index, 1);
+    if (uploadedFiles.length === 0) {
+        fileSection.classList.add('hidden');
+        actionButtons.classList.add('hidden');
+        showNotification('info', 'All Files Removed', 'Please upload new files');
+    } else {
+        displayFiles();
+        showNotification('success', 'File Removed', 'File successfully removed from list');
+    }
+}
+
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+function showNotification(type, title, message) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    
+    notification.innerHTML = `
+        <div class="notification-icon">
+            <i class="fas ${icons[type]}"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">${title}</div>
+            <div class="notification-message">${message}</div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.classList.add('show'), 10);
+    
+    setTimeout(() => {
+        notification.classList.add('hide');
+        setTimeout(() => notification.remove(), 400);
+    }, 3000);
+}
+
+// ==================== MAIN EVENT LISTENERS ====================
+
+convertBtn.addEventListener('click', convertImages);
+resetBtn.addEventListener('click', resetAll);
+
+// Close modal on click outside
+resultModal.addEventListener('click', (e) => {
+    if (e.target === resultModal) {
+        closeModal();
+    }
+});
+
+previewModal.addEventListener('click', (e) => {
+    if (e.target === previewModal) {
+        closePreviewModal();
+    }
+});
+
+// Cleanup object URLs when page is closed
+window.addEventListener('beforeunload', () => {
+    document.querySelectorAll('img[data-url]').forEach(img => {
+        if (img.dataset.url) {
+            URL.revokeObjectURL(img.dataset.url);
+        }
+    });
+});
+
+// ==================== INITIALIZE ====================
+
+document.addEventListener('DOMContentLoaded', () => {
+    showNotification('info', 'Any Image Converter', 'Ready! Same format conversion is blocked.');
+    
+    // Add CSS styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .file-card.unconvertible {
+            border-color: var(--error) !important;
+            opacity: 0.7;
+        }
+        
+        .file-card.unconvertible:hover {
+            border-color: var(--error) !important;
+            cursor: not-allowed;
+        }
+        
+        .unconvertible .file-preview {
+            cursor: not-allowed !important;
+        }
+        
+        .unconvertible .file-preview:hover img {
+            transform: none !important;
+        }
+        
+        .error-badge {
+            background: var(--error) !important;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            z-index: 2;
+        }
+        
+        .warning-badge {
+            background: var(--warning) !important;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            z-index: 2;
+        }
+        
+        .format-badge {
+            background: var(--accent-light);
+            color: var(--accent);
+            font-size: 0.55rem;
+            font-weight: 800;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            z-index: 2;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .slide-count {
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            z-index: 1;
+        }
+        
+        /* Format grid styling */
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .format-chip {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-align: center;
+            transition: all 0.3s;
+            cursor: help;
+        }
+        
+        .format-chip:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        
+        .format-chip.same-format {
+            border-color: var(--warning);
+            color: var(--warning);
+            background: rgba(245, 158, 11, 0.1);
+        }
+        
+        .format-chip.same-format::after {
+            content: ' ⚠️';
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Update format select untuk menunjukkan format yang sama
+    const formatSelect = document.getElementById('formatSelect');
+    formatSelect.innerHTML = `
+        <option value="jpeg">JPEG</option>
+        <option value="png">PNG</option>
+        <option value="webp">WEBP</option>
+        <option value="gif">GIF</option>
+        <option value="bmp">BMP</option>
+        <option value="tiff">TIFF</option>
+        <option value="pdf">PDF (Combine Images)</option>
+    `;
+    
+    // Update file input accept attribute
+    fileInput.setAttribute('accept', 'image/*,.pdf,.ico');
+    
+    // Create format grid display
+    const formatGrid = document.createElement('div');
+    formatGrid.className = 'format-grid';
+    
+    // Add all formats dengan indicator format sama
+    allFormats.forEach(format => {
+        const chip = document.createElement('div');
+        chip.className = 'format-chip';
+        chip.innerHTML = `
+            <div>${format.name}</div>
+            <small>${format.ext}</small>
+        `;
+        chip.title = `Convert to/from ${format.name}\n❌ Blocked: ${format.name} → ${format.name}`;
+        formatGrid.appendChild(chip);
+    });
+    
+    // Insert after subtitle
+    const subtitle = document.querySelector('.subtitle');
+    subtitle.parentNode.insertBefore(formatGrid, subtitle.nextSibling);
+    
+    // Tambahkan event listener untuk format select
+    formatSelect.addEventListener('change', function() {
+        const selectedFormat = this.value;
+        
+        // Update semua file card dengan info format sama
+        uploadedFiles.forEach((file, index) => {
+            const fileFormat = getFileFormat(file);
+            const card = document.querySelector(`.file-card[data-index="${index}"]`);
+            
+            if (card) {
+                // Hapus badge format sama sebelumnya
+                const oldBadge = card.querySelector('.same-format-badge');
+                if (oldBadge) oldBadge.remove();
+                
+                // Jika format sama, tambahkan badge warning
+                if (fileFormat === selectedFormat) {
+                    const sameFormatBadge = document.createElement('div');
+                    sameFormatBadge.className = 'warning-badge same-format-badge';
+                    sameFormatBadge.style.top = '2.5rem';
+                    sameFormatBadge.style.left = '0.5rem';
+                    sameFormatBadge.style.background = 'var(--warning)';
+                    sameFormatBadge.textContent = 'SAME FORMAT';
+                    sameFormatBadge.title = 'File is already in this format - conversion blocked';
+                    
+                    const preview = card.querySelector('.file-preview');
+                    if (preview) {
+                        preview.appendChild(sameFormatBadge);
+                    }
+                }
+            }
+        });
+    });
+});
+
+    </script>
+</body>
+</html>
